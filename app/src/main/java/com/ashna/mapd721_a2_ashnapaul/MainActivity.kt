@@ -28,6 +28,13 @@ class MainActivity : ComponentActivity() {
 
         healthConnectClient = HealthConnectClient.getOrCreate(this)
         requestHealthPermissions()
+        setContent {
+            HealthScreen(
+                onSave = { heartRate, dateTime -> saveHeartRate(heartRate, dateTime) },
+                onLoad = { loadHeartRates() },
+                history = heartRateHistory
+            )
+        }
 
     }
 }
