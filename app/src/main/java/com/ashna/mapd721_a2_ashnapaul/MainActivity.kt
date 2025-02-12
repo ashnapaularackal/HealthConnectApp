@@ -42,18 +42,20 @@ private fun requestHealthPermissions() {
         }
     permissionLauncher.launch(request.permissions.toTypedArray())
 }
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MAPD721A2AshnaPaulTheme {
-        Greeting("Android")
+private fun saveHeartRate(heartRate: Int, dateTime: String) {
+    val record = HeartRateRecord(
+        samples = listOf(
+            HeartRateRecord.Sample(heartRate = heartRate, time = Instant.parse(dateTime))
+        ),
+        startTime = Instant.parse(dateTime),
+        endTime = Instant.parse(dateTime),
+        startZoneOffset = null,
+        endZoneOffset = null
+    )
+
+    lifecycleScope.launch {
+        healthConnectClient.writeRecords(listOf(record))
+        Toast.makeText(this@MainActivity, "Saved Successfully", Toast.LENGTH_SHORT).show()
     }
 }
