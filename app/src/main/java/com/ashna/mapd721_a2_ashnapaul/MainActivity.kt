@@ -59,3 +59,13 @@ private fun saveHeartRate(heartRate: Int, dateTime: String) {
         Toast.makeText(this@MainActivity, "Saved Successfully", Toast.LENGTH_SHORT).show()
     }
 }
+private fun loadHeartRates() {
+    lifecycleScope.launch {
+        val request = ReadRecordsRequest(HeartRateRecord::class)
+        val response = healthConnectClient.readRecords(request)
+        val historyList = response.records.map { "${it.samples.first().heartRate} bpm, ${it.startTime}" }
+        runOnUiThread {
+            heartRateHistory = historyList
+        }
+    }
+}
