@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.ashna.mapd721_a2_ashnapaul"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"

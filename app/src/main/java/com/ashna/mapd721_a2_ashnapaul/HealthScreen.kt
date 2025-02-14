@@ -1,109 +1,138 @@
 package com.ashna.mapd721_a2_ashnapaul
 
-import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import java.time.Instant
+import androidx.compose.ui.unit.sp
 
+/**
+ * HealthScreen Composable function
+ * Author: Ashna Paul
+ * Description: This UI allows users to input and save heart rate readings along with timestamps.
+ * It also displays a scrollable history of previous heart rate readings.
+ */
 @Composable
 fun HealthScreen(
-    onSave: (Int, String) -> Unit,
-    onLoad: () -> Unit,
-    history: List<String>
+    onSaveClick: (String, String) -> Unit,
+    onLoadClick: () -> Unit,
+    heartRateHistory: List<Pair<String, String>>
 ) {
     var heartRate by remember { mutableStateOf("") }
     var dateTime by remember { mutableStateOf("") }
-    val context = LocalContext.current
+    var errorMessage by remember { mutableStateOf("") }
 
-    Column(
+    // Gradient background
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(Color(0xFF4A90E2), Color(0xFF50E3C2))
+    )
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(brush = backgroundBrush) // Ensures full background coverage
     ) {
-        Text(text = "Health Connect - Heart Rate", style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Heart Rate Input
-        OutlinedTextField(
-            value = heartRate,
-            onValueChange = { heartRate = it },
-            label = { Text("Heart Rate (BPM)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Date/Time Input
-        OutlinedTextField(
-            value = dateTime,
-            onValueChange = { dateTime = it },
-            label = { Text("Date/Time (ISO-8601 format)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(30.dp)
         ) {
-            Button(
-                onClick = {
-                    if (heartRate.isNotEmpty() && dateTime.isNotEmpty()) {
-                        try {
-                            val bpm = heartRate.toInt()
-                            Instant.parse(dateTime) // Validates format
-                            onSave(bpm, dateTime)
-                            Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "Invalid Input Format!", Toast.LENGTH_SHORT).show()
+            // Title
+            Text(
+                "MAPD 721 - A2",
+                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Heart Rate Input Field
+            OutlinedTextField(
+                value = heartRate,
+                onValueChange = {
+                    heartRate = it
+                    errorMessage = if (it.toIntOrNull() !in 1..300) "Heart rate must be between 1 and 300 bpm" else ""
+                },
+                label = { Text("Heart Rate (1-300 bpm)") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = errorMessage.isNotEmpty()
+            )
+            if (errorMessage.isNotEmpty()) {
+                Text(errorMessage, color = Color.Red, style = TextStyle(fontSize = 14.sp))
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Date/Time Input Field
+            OutlinedTextField(
+                value = dateTime,
+                onValueChange = { dateTime = it },
+                label = { Text("Date/Time (yyyy-MM-dd HH:mm)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Buttons Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = onLoadClick,
+                    modifier = Modifier.padding(8.dp).height(50.dp)
+                ) {
+                    Text("Load", fontSize = 18.sp)
+                }
+                Button(
+                    onClick = {
+                        if (errorMessage.isEmpty()) {
+                            onSaveClick(heartRate, dateTime)
                         }
-                    } else {
-                        Toast.makeText(context, "Please enter all fields!", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.padding(8.dp).height(50.dp)
+                ) {
+                    Text("Save", fontSize = 18.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Heart Rate History
+            Text("Heart Rate History", style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold))
+
+            Box(modifier = Modifier.weight(1f).padding(vertical = 8.dp)) {
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    items(heartRateHistory) { reading ->
+                        Text(
+                            "${reading.second} - ${reading.first}",
+                            style = TextStyle(fontSize = 16.sp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
-            ) {
-                Text("Save")
             }
 
-            Button(onClick = { onLoad() }) {
-                Text("Load")
-            }
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Heart Rate History
-        Text(text = "Heart Rate History", style = MaterialTheme.typography.headlineSmall)
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            history.forEach { record ->
-                Text(text = record, modifier = Modifier.padding(4.dp))
+            // About Section (Scrollable)
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text("About", style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold))
+                Text("Student Name: Ashna Paul", fontSize = 16.sp)
+                Text("Student ID: 301479554", fontSize = 16.sp)
             }
         }
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // About Section
-        Text(text = "About", style = MaterialTheme.typography.headlineSmall)
-        Text(text = "Student Name: Ashna Paul")
-        Text(text = "Student ID: 301479554")
     }
 }
