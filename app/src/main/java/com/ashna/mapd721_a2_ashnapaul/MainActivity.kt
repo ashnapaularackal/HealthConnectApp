@@ -1,3 +1,12 @@
+/*
+ * Project: Health Connect Heart Rate Tracker
+ * Description: This Android application uses Health Connect API to read and write heart rate records.
+ *              It allows users to save heart rate measurements and view their heart rate history.
+ * Author: Ashna Paul
+ * ID: 301479554
+ * Package: com.ashna.mapd721_a2_ashnapaul
+ */
+
 package com.ashna.mapd721_a2_ashnapaul
 
 import androidx.health.connect.client.time.TimeRangeFilter
@@ -20,6 +29,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class MainActivity : ComponentActivity() {
+    // Health Connect client instance
     private lateinit var healthConnectClient: HealthConnectClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +38,7 @@ class MainActivity : ComponentActivity() {
         // Initialize Health Connect client
         healthConnectClient = HealthConnectClient.getOrCreate(this)
 
-        // Create permission launcher
+        // Create permission launcher to request Health Connect permissions
         val permissionsLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
@@ -44,20 +54,19 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 var heartRateHistory by remember { mutableStateOf(listOf<Pair<String, String>>()) }
 
-                // Launch permission request when the app starts
+                // Request permissions on app launch
                 LaunchedEffect(Unit) {
                     requestPermissions(permissionsLauncher)
                 }
 
+                // UI to save and load heart rate records
                 HealthScreen(
                     onSaveClick = { heartRate, dateTime ->
-                        // Save heart rate data
                         lifecycleScope.launch {
                             saveHeartRate(heartRate.toLong(), dateTime)
                         }
                     },
                     onLoadClick = {
-                        // Load heart rate history
                         lifecycleScope.launch {
                             heartRateHistory = loadHeartRates()
                         }
@@ -69,7 +78,7 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Request permissions for reading and writing health data.
+     * Request permissions for reading and writing health data using Health Connect API.
      */
     private fun requestPermissions(permissionsLauncher: ActivityResultLauncher<Array<String>>) {
         val permissions = arrayOf(
@@ -80,11 +89,13 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Save a heart rate record using the Health Connect API.
+     * Save a heart rate record to Health Connect API.
+     * @param heartRate The heart rate value in beats per minute.
+     * @param dateTime The timestamp in "yyyy-MM-dd HH:mm" format.
      */
     private suspend fun saveHeartRate(heartRate: Long, dateTime: String) {
         try {
-            // Parse the input date-time string in the required format (yyyy-MM-dd HH:mm)
+            // Parse the input date-time string
             val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
             val localDateTime = java.time.LocalDateTime.parse(dateTime, formatter)
 
@@ -109,7 +120,8 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Load heart rate records using the Health Connect API.
+     * Load heart rate records from Health Connect API.
+     * @return A list of pairs containing date-time and heart rate values.
      */
     private suspend fun loadHeartRates(): List<Pair<String, String>> {
         return try {
@@ -120,7 +132,7 @@ class MainActivity : ComponentActivity() {
                 )
             )
             response.records.map { record ->
-                // Format the date-time to "yyyy-MM-dd HH:mm"
+                // Format the date-time
                 val formattedDateTime =
                     ZonedDateTime.ofInstant(record.startTime, ZoneId.systemDefault())
                         .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))

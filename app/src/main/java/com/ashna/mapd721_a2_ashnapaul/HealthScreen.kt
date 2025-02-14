@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 /**
  * HealthScreen Composable function
  * Author: Ashna Paul
+ * ID :301479554
  * Description: This UI allows users to input and save heart rate readings along with timestamps.
  * It also displays a scrollable history of previous heart rate readings.
  */
